@@ -176,6 +176,7 @@
 
     <script>
         // Scene setup
+        let currentRadius = 10000000;
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, currentRadius * 0.01, currentRadius * 100);       
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -187,7 +188,6 @@
         let sphere, tickBoundaries = [], equalPricePoint, sphereCenter;
         let animating = true;
         let animationSpeed = 1.0;
-        let currentRadius = 10000000;
         let currentTickCount = 6;
 
         // Initialize the visualization
