@@ -255,9 +255,10 @@
                 const normal = new THREE.Vector3(1, 1, 1).normalize();
                 planeMesh.lookAt(normal);
                 
-                // Distance from origin to plane: k * sqrt(3)
-                const distance = k * Math.sqrt(3);
-                planeMesh.position.copy(normal.multiplyScalar(distance));
+                // FIXED: Position plane correctly in reserve space
+                const targetSum = k * Math.sqrt(n);
+                const planeCenterCoord = targetSum / 3;
+                planeMesh.position.set(planeCenterCoord, planeCenterCoord, planeCenterCoord);
                 
                 scene.add(planeMesh);
                 tickBoundaries.push(planeMesh);
