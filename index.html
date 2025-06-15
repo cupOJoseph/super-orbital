@@ -268,6 +268,14 @@
             updateInfoDisplay();
         }
 
+        // DEBUG: Log positions
+            if (i === 0) { // For the red plane only
+            console.log("Equal price point:", q, q, q);
+            console.log("Red plane k:", k);
+            console.log("Red plane center:", planeCenterCoord, planeCenterCoord, planeCenterCoord);
+            console.log("Distance apart:", Math.sqrt(3 * Math.pow(planeCenterCoord - q, 2)));
+}
+
         function updateInfoDisplay() {
             const r = currentRadius;
             const n = 3;
