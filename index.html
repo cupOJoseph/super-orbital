@@ -176,19 +176,21 @@
 
     <script>
         // Scene setup
-        let currentRadius = 10000000;
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, currentRadius * 0.01, currentRadius * 100);       
+
+        // Global variables (MOVE HERE)
+        let sphere, tickBoundaries = [], equalPricePoint, sphereCenter;
+        let animating = true;
+        let animationSpeed = 1.0;
+        let currentRadius = 10000000;
+        let currentTickCount = 6;
+
+        // Now camera can use currentRadius
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, currentRadius * 0.001, currentRadius * 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x0a0a0a, 1);
         document.getElementById('container').appendChild(renderer.domElement);
-
-        // Global variables
-        let sphere, tickBoundaries = [], equalPricePoint, sphereCenter;
-        let animating = true;
-        let animationSpeed = 1.0;
-        let currentTickCount = 6;
 
         // Initialize the visualization
         function initVisualization() {
@@ -214,7 +216,7 @@
             scene.add(sphere);
 
             // Add sphere center point
-            const centerGeometry = new THREE.SphereGeometry(3, 8, 8);
+            const centerGeometry = new THREE.SphereGeometry(r * 0.01, 8, 8); // 1% of sphere radius
             const centerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
             sphereCenter = new THREE.Mesh(centerGeometry, centerMaterial);
             sphereCenter.position.set(r, r, r);
@@ -222,7 +224,7 @@
 
             // Calculate equal price point
             const q = r * (1 - 1/Math.sqrt(n));
-            const equalPriceGeometry = new THREE.SphereGeometry(4, 8, 8);
+            const equalPriceGeometry = new THREE.SphereGeometry(r * 0.015, 8, 8); // 1.5% of sphere radius
             const equalPriceMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
             equalPricePoint = new THREE.Mesh(equalPriceGeometry, equalPriceMaterial);
             equalPricePoint.position.set(q, q, q);
@@ -239,7 +241,7 @@
                 
                 // Create plane geometry for tick boundary
                 // The plane equation is x + y + z = k * sqrt(3)
-                const planeSize = r * 2.5;
+                const planeSize = r * 1.5;
                 const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
                 const planeMaterial = new THREE.MeshBasicMaterial({
                     color: new THREE.Color().setHSL(t * 0.8, 0.8, 0.6),
@@ -323,8 +325,10 @@
             currentRadius = parseInt(e.target.value);
             // Format large numbers with commas
             document.getElementById('radiusValue').textContent = currentRadius.toLocaleString();
-            initVisualization();
+            // Update camera position for new radius
+            camera.position.set(currentRadius * 2, currentRadius * 2, currentRadius * 3);
             camera.lookAt(currentRadius, currentRadius, currentRadius);
+            initVisualization();
         });
 
         document.getElementById('tickSlider').addEventListener('input', function(e) {
