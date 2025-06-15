@@ -216,7 +216,7 @@
             scene.add(sphere);
 
             // Add sphere center point
-            const centerGeometry = new THREE.SphereGeometry(r * 0.01, 8, 8); // 1% of sphere radius
+            const centerGeometry = new THREE.SphereGeometry(r * 0.05, 8, 8); // 1% of sphere radius
             const centerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
             sphereCenter = new THREE.Mesh(centerGeometry, centerMaterial);
             sphereCenter.position.set(r, r, r);
@@ -224,7 +224,7 @@
 
             // Calculate equal price point
             const q = r * (1 - 1/Math.sqrt(n));
-            const equalPriceGeometry = new THREE.SphereGeometry(r * 0.015, 8, 8); // 1.5% of sphere radius
+            const equalPriceGeometry = new THREE.SphereGeometry(r * 0.06, 8, 8); // 1.5% of sphere radius
             const equalPriceMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
             equalPricePoint = new THREE.Mesh(equalPriceGeometry, equalPriceMaterial);
             equalPricePoint.position.set(q, q, q);
