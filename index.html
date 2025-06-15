@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbital AMM Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a0a;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff88;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #00ff88;
+            z-index: 100;
+            max-width: 300px;
+        }
+        
+        #info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #00ff88;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #00ff88;
+            z-index: 100;
+            max-width: 400px;
+            font-size: 12px;
+        }
+        
+        .slider-container {
+            margin: 10px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ff88;
+            font-size: 12px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            background: #1a1a1a;
+        }
+        
+        .value-display {
+            color: #ffffff;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+        
+        h3 {
+            margin: 0 0 15px 0;
+            color: #ffffff;
+            font-size: 16px;
+        }
+        
+        .legend {
+            margin-top: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        button {
+            background: #1a1a1a;
+            color: #00ff88;
+            border: 1px solid #00ff88;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 5px 5px 0;
+            font-size: 11px;
+        }
+        
+        button:hover {
+            background: #00ff88;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="controls">
+            <h3>Orbital AMM Controls</h3>
+            
+            <div class="slider-container">
+                <label>Sphere Radius (r)</label>
+                <input type="range" id="radiusSlider" min="50" max="150" value="100" step="5">
+                <div class="value-display">r = <span id="radiusValue">100</span></div>
+            </div>
+            
+            <div class="slider-container">
+                <label>Number of Tick Boundaries</label>
+                <input type="range" id="tickSlider" min="3" max="12" value="6" step="1">
+                <div class="value-display">Ticks = <span id="tickValue">6</span></div>
+            </div>
+            
+            <div class="slider-container">
+                <label>Animation Speed</label>
+                <input type="range" id="speedSlider" min="0" max="2" value="1" step="0.1">
+                <div class="value-display">Speed = <span id="speedValue">1.0</span>x</div>
+            </div>
+            
+            <button onclick="toggleAnimation()">Toggle Animation</button>
+            <button onclick="resetView()">Reset View</button>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(0, 255, 136, 0.3); border: 1px solid #00ff88;"></div>
+                    <span>Main Sphere (AMM Constant)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(255, 100, 100, 0.6);"></div>
+                    <span>Tick Boundaries (k values)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffff00;"></div>
+                    <span>Equal Price Point</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffffff;"></div>
+                    <span>Sphere Center</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="info">
+            <h3>Mathematical Relationships</h3>
+            <div>
+                <strong>AMM Constant:</strong><br>
+                ||r⃗ - x⃗||² = r²<br>
+                <em>Defines the sphere surface</em>
+            </div>
+            <div style="margin-top: 10px;">
+                <strong>Tick Boundaries:</strong><br>
+                x⃗ · v⃗ = k<br>
+                <em>Creates concentration zones</em>
+            </div>
+            <div style="margin-top: 10px;">
+                <strong>Current State:</strong><br>
+                <span id="currentState">Center: (100, 100, 100)<br>Radius: 100<br>k_min: 73, k_max: 115</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x0a0a0a, 1);
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        // Global variables
+        let sphere, tickBoundaries = [], equalPricePoint, sphereCenter;
+        let animating = true;
+        let animationSpeed = 1.0;
+        let currentRadius = 100;
+        let currentTickCount = 6;
+
+        // Initialize the visualization
+        function initVisualization() {
+            // Clear existing objects
+            while(scene.children.length > 0) {
+                scene.remove(scene.children[0]);
+            }
+            tickBoundaries = [];
+
+            const r = currentRadius;
+            const n = 3; // 3D visualization for 3 assets
+
+            // Create main sphere (AMM constant surface)
+            const sphereGeometry = new THREE.SphereGeometry(r, 32, 32);
+            const sphereMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff88,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+            sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.set(r, r, r); // Center at (r, r, r)
+            scene.add(sphere);
+
+            // Add sphere center point
+            const centerGeometry = new THREE.SphereGeometry(3, 8, 8);
+            const centerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            sphereCenter = new THREE.Mesh(centerGeometry, centerMaterial);
+            sphereCenter.position.set(r, r, r);
+            scene.add(sphereCenter);
+
+            // Calculate equal price point
+            const q = r * (1 - 1/Math.sqrt(n));
+            const equalPriceGeometry = new THREE.SphereGeometry(4, 8, 8);
+            const equalPriceMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            equalPricePoint = new THREE.Mesh(equalPriceGeometry, equalPriceMaterial);
+            equalPricePoint.position.set(q, q, q);
+            scene.add(equalPricePoint);
+
+            // Calculate k_min and k_max
+            const k_min = r * (Math.sqrt(n) - 1);
+            const k_max = r * (n - 1) / Math.sqrt(n);
+
+            // Create tick boundaries (planes intersecting the sphere)
+            for (let i = 0; i < currentTickCount; i++) {
+                const t = i / (currentTickCount - 1);
+                const k = k_min + t * (k_max - k_min);
+                
+                // Create plane geometry for tick boundary
+                // The plane equation is x + y + z = k * sqrt(3)
+                const planeSize = r * 2.5;
+                const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
+                const planeMaterial = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(t * 0.8, 0.8, 0.6),
+                    transparent: true,
+                    opacity: 0.4,
+                    side: THREE.DoubleSide
+                });
+                
+                const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
+                
+                // Position and orient the plane
+                // Normal vector is (1, 1, 1) normalized
+                const normal = new THREE.Vector3(1, 1, 1).normalize();
+                planeMesh.lookAt(normal);
+                
+                // Distance from origin to plane: k * sqrt(3)
+                const distance = k * Math.sqrt(3);
+                planeMesh.position.copy(normal.multiplyScalar(distance));
+                
+                scene.add(planeMesh);
+                tickBoundaries.push(planeMesh);
+            }
+
+            // Update info display
+            updateInfoDisplay();
+        }
+
+        function updateInfoDisplay() {
+            const r = currentRadius;
+            const n = 3;
+            const k_min = Math.round(r * (Math.sqrt(n) - 1));
+            const k_max = Math.round(r * (n - 1) / Math.sqrt(n));
+            
+            document.getElementById('currentState').innerHTML = 
+                `Center: (${r}, ${r}, ${r})<br>` +
+                `Radius: ${r}<br>` +
+                `k_min: ${k_min}, k_max: ${k_max}`;
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (animating) {
+                // Rotate the entire scene slowly
+                scene.rotation.y += 0.005 * animationSpeed;
+                scene.rotation.x += 0.002 * animationSpeed;
+                
+                // Pulse the tick boundaries slightly
+                tickBoundaries.forEach((boundary, i) => {
+                    const time = Date.now() * 0.001;
+                    boundary.material.opacity = 0.3 + 0.2 * Math.sin(time + i * 0.5);
+                });
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        // Control functions
+        function toggleAnimation() {
+            animating = !animating;
+        }
+
+        function resetView() {
+            scene.rotation.set(0, 0, 0);
+            camera.position.set(200, 200, 300);
+            camera.lookAt(currentRadius, currentRadius, currentRadius);
+        }
+
+        // Event listeners
+        document.getElementById('radiusSlider').addEventListener('input', function(e) {
+            currentRadius = parseInt(e.target.value);
+            document.getElementById('radiusValue').textContent = currentRadius;
+            initVisualization();
+            camera.lookAt(currentRadius, currentRadius, currentRadius);
+        });
+
+        document.getElementById('tickSlider').addEventListener('input', function(e) {
+            currentTickCount = parseInt(e.target.value);
+            document.getElementById('tickValue').textContent = currentTickCount;
+            initVisualization();
+        });
+
+        document.getElementById('speedSlider').addEventListener('input', function(e) {
+            animationSpeed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = animationSpeed.toFixed(1);
+        });
+
+        // Mouse controls
+        let mouseX = 0, mouseY = 0;
+        let isMouseDown = false;
+
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        renderer.domElement.addEventListener('mouseup', () => {
+            isMouseDown = false;
+        });
+
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (isMouseDown) {
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+                
+                scene.rotation.y += deltaX * 0.01;
+                scene.rotation.x += deltaY * 0.01;
+                
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            }
+        });
+
+        // Zoom with mouse wheel
+        renderer.domElement.addEventListener('wheel', (e) => {
+            camera.position.multiplyScalar(1 + e.deltaY * 0.001);
+            camera.position.clampLength(50, 800);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize everything
+        camera.position.set(200, 200, 300);
+        camera.lookAt(currentRadius, currentRadius, currentRadius);
+
+        // Add some lighting for better visibility
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        initVisualization();
+        animate();
+    </script>
+</body>
+</html>
