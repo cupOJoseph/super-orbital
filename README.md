@@ -1,131 +1,134 @@
-Orbital
-An HTML-based visualization of the geometry of Orbital, a new n-dimensional AMM design from the team at Paradigm.
-📄 Orbital AMM Paper
-Read the Full Paper → https://www.paradigm.xyz/2025/06/orbital
+# Orbital
 
-Authors: Dave White, Dan Robinson, Ciamac Moallemi (Paradigm)
-Topic: Concentrated liquidity for n-dimensional stablecoin pools
-Innovation: Capital efficiency through geometric constraints
+An HTML-based visualization of the geometry of **Orbital**, a new n-dimensional AMM design from the team at Paradigm.
 
-Key Concepts
+## 📄 Orbital AMM Paper
 
-Hypersphere geometry: n-dimensional trading surfaces
-Virtual reserves: Free liquidity from mathematical constraints
-Tick consolidation: Efficient multi-tick trading
-Polar decomposition: Separating balance vs. imbalance components
+**[Read the Full Paper →](https://www.paradigm.xyz/2025/06/orbital)**
 
+- **Authors:** Dave White, Dan Robinson, Ciamac Moallemi (Paradigm)
+- **Topic:** Concentrated liquidity for n-dimensional stablecoin pools  
+- **Innovation:** Capital efficiency through geometric constraints
 
-🚀 Orbital AMM 3D Visualization
+### Key Concepts
+- **Hypersphere geometry:** n-dimensional trading surfaces
+- **Virtual reserves:** Free liquidity from mathematical constraints
+- **Tick consolidation:** Efficient multi-tick trading
+- **Polar decomposition:** Separating balance vs. imbalance components
+
+---
+
+## 🚀 Orbital AMM 3D Visualization
+
 An interactive 3D visualization of the Orbital AMM mathematical model for multi-asset stablecoin trading with concentrated liquidity.
-Quick Start
-🌐 Live Demo: https://1elbaz.github.io/orbital/
-OR
 
-Download the HTML file
-Open in any modern web browser (Chrome, Firefox, Safari, Edge)
-Interact with the 3D model using mouse and controls
+### Quick Start
 
+**🌐 Live Demo:** **[https://1elbaz.github.io/orbital/](https://1elbaz.github.io/orbital/)**
 
-No installation required! Just open the HTML file directly in your browser.
+**OR**
 
+1. **Download** the HTML file
+2. **Open** in any modern web browser (Chrome, Firefox, Safari, Edge)
+3. **Interact** with the 3D model using mouse and controls
 
-📊 What You'll See
-Core Elements
+> **No installation required!** Just open the HTML file directly in your browser.
 
-🟢 Green Wireframe Sphere: The AMM constant surface ||r⃗ - x⃗||² = r²
-🔴 Colored Planes: Tick boundaries x⃗ · v⃗ = k for concentrated liquidity zones
-🟡 Yellow Dot: Equal price point where all assets trade at $1.00
-⚪ White Dot: Mathematical sphere center at (r, r, r)
+---
 
-Mathematical Relationships
+## 📊 What You'll See
 
-AMM Constant: ||r⃗ - x⃗||² = r² (defines all valid reserve states)
-Tick Boundaries: x⃗ · v⃗ = k (creates capital efficiency zones)
-Equal Price Point: q = r(1 - 1/√n) (optimal balanced state)
+### Core Elements
+- **🟢 Green Wireframe Sphere:** The AMM constant surface `||r⃗ - x⃗||² = r²`
+- **🔴 Colored Planes:** Tick boundaries `x⃗ · v⃗ = k` for concentrated liquidity zones
+- **🟡 Yellow Dot:** Equal price point where all assets trade at $1.00
+- **⚪ White Dot:** Mathematical sphere center at `(r, r, r)`
 
+### Mathematical Relationships
+- **AMM Constant:** `||r⃗ - x⃗||² = r²` (defines all valid reserve states)
+- **Tick Boundaries:** `x⃗ · v⃗ = k` (creates capital efficiency zones)
+- **Equal Price Point:** `q = r(1 - 1/√n)` (optimal balanced state)
 
-🎮 Controls
-Interactive Sliders
+---
 
-Sphere Radius (r): Adjust the AMM pool size (1M-20M)
-Tick Count: Change number of concentration zones (3-12)
-Animation Speed: Control rotation speed (0-2x)
+## 🎮 Controls
 
-Mouse Controls
+### Interactive Sliders
+- **Sphere Radius (r):** Adjust the AMM pool size (1M-20M)
+- **Tick Count:** Change number of concentration zones (3-12)
+- **Animation Speed:** Control rotation speed (0-2x)
 
-Click + Drag: Rotate the 3D view
-Scroll Wheel: Zoom in/out
-Reset View: Button to return to default position
+### Mouse Controls
+- **Click + Drag:** Rotate the 3D view
+- **Scroll Wheel:** Zoom in/out
+- **Reset View:** Button to return to default position
 
-Action Buttons
+### Action Buttons
+- **Toggle Animation:** Start/stop automatic rotation
+- **Reset View:** Return to default camera position
 
-Toggle Animation: Start/stop automatic rotation
-Reset View: Return to default camera position
+---
 
+## 🧮 Key Insights
 
-🧮 Key Insights
-Capital Efficiency Zones
+### Capital Efficiency Zones
+- **Inner boundaries (red):** High efficiency, low risk (covers small depegs)
+- **Outer boundaries (blue):** Low efficiency, high risk (covers extreme depegs)
+- **Distance from center:** Determines risk/reward profile
 
-Inner boundaries (red): High efficiency, low risk (covers small depegs)
-Outer boundaries (blue): Low efficiency, high risk (covers extreme depegs)
-Distance from center: Determines risk/reward profile
+### Geometric Constraints
+- **All trading happens on the sphere surface**
+- **Tick boundaries slice the sphere** into manageable liquidity zones
+- **Equal price point** represents perfect $1.00 parity for all assets
 
-Geometric Constraints
+### Real-World Applications
+- **Multi-stablecoin pools:** USDC, USDT, DAI, FRAX, LUSD
+- **Concentrated liquidity:** LPs can choose their risk tolerance
+- **Capital efficiency:** Up to 150x improvement over traditional AMMs
 
-All trading happens on the sphere surface
-Tick boundaries slice the sphere into manageable liquidity zones
-Equal price point represents perfect $1.00 parity for all assets
+---
 
-Real-World Applications
+## 🔧 Technical Details
 
-Multi-stablecoin pools: USDC, USDT, DAI, FRAX, LUSD
-Concentrated liquidity: LPs can choose their risk tolerance
-Capital efficiency: Up to 150x improvement over traditional AMMs
+### Requirements
+- **Modern web browser** with WebGL support
+- **Internet connection** (for Three.js library download)
+- **No additional software** needed
 
+### Dependencies
+- **Three.js r128:** 3D graphics library (loaded from CDN)
+- **Pure HTML/CSS/JavaScript:** No build process required
 
-🔧 Technical Details
-Requirements
+### Browser Compatibility
+- ✅ Chrome 80+
+- ✅ Firefox 70+
+- ✅ Safari 12+
+- ✅ Edge 80+
 
-Modern web browser with WebGL support
-Internet connection (for Three.js library download)
-No additional software needed
+---
 
-Dependencies
+## 📚 Understanding the Math
 
-Three.js r128: 3D graphics library (loaded from CDN)
-Pure HTML/CSS/JavaScript: No build process required
-
-Browser Compatibility
-
-✅ Chrome 80+
-✅ Firefox 70+
-✅ Safari 12+
-✅ Edge 80+
-
-
-📚 Understanding the Math
-AMM Constant (Sphere Equation)
+### AMM Constant (Sphere Equation)
 ||r⃗ - x⃗||² = r²
 (r - x₁)² + (r - x₂)² + (r - x₃)² = r²
+- **Replaces `x × y = k`** for n-dimensional trading
+- **Ensures consistent pricing** across all asset pairs
+- **Creates bounded reserve space** (0 ≤ xᵢ ≤ r)
 
-Replaces x × y = k for n-dimensional trading
-Ensures consistent pricing across all asset pairs
-Creates bounded reserve space (0 ≤ xᵢ ≤ r)
-
-Tick Boundaries (Plane Equations)
+### Tick Boundaries (Plane Equations)
 x⃗ · v⃗ = k
 (x₁ + x₂ + x₃)/√3 = k
+- **Creates concentration zones** for capital efficiency
+- **k_min = r(√n - 1):** Closest to equal price point
+- **k_max = r(n-1)/√n:** Covers extreme scenarios
 
-Creates concentration zones for capital efficiency
-k_min = r(√n - 1): Closest to equal price point
-k_max = r(n-1)/√n: Covers extreme scenarios
-
-Capital Efficiency Formula
+### Capital Efficiency Formula
 efficiency = x_base / (x_base - x_min(k))
+- **x_base:** Traditional capital requirement
+- **x_min(k):** Virtual reserves from geometric constraints
+- **Result:** 15x to 150x efficiency gains
 
-x_base: Traditional capital requirement
-x_min(k): Virtual reserves from geometric constraints
-Result: 15x to 150x efficiency gains
+---
 
-
-Built with Three.js • No installation required • Open source visualization
+**Built with Three.js • No installation required • Open source visualization**
