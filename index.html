@@ -177,7 +177,7 @@
     <script>
         // Scene setup
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, currentRadius * 0.01, currentRadius * 100);       
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x0a0a0a, 1);
@@ -260,6 +260,14 @@
                 const planeCenterCoord = targetSum / 3;
                 planeMesh.position.set(planeCenterCoord, planeCenterCoord, planeCenterCoord);
                 
+                // DEBUG: Log positions (MOVE HERE)
+                if (i === 0) { // For the red plane only
+                    console.log("Equal price point:", q, q, q);
+                    console.log("Red plane k:", k);
+                    console.log("Red plane center:", planeCenterCoord, planeCenterCoord, planeCenterCoord);
+                    console.log("Distance apart:", Math.sqrt(3 * Math.pow(planeCenterCoord - q, 2)));
+    }
+
                 scene.add(planeMesh);
                 tickBoundaries.push(planeMesh);
             }
@@ -267,14 +275,6 @@
             // Update info display
             updateInfoDisplay();
         }
-
-        // DEBUG: Log positions
-            if (i === 0) { // For the red plane only
-            console.log("Equal price point:", q, q, q);
-            console.log("Red plane k:", k);
-            console.log("Red plane center:", planeCenterCoord, planeCenterCoord, planeCenterCoord);
-            console.log("Distance apart:", Math.sqrt(3 * Math.pow(planeCenterCoord - q, 2)));
-}
 
         function updateInfoDisplay() {
             const r = currentRadius;
@@ -314,8 +314,7 @@
 
         function resetView() {
             scene.rotation.set(0, 0, 0);
-            const cameraScale = currentRadius / 100;
-            camera.position.set(200 * cameraScale, 200 * cameraScale, 300 * cameraScale);
+            camera.position.set(currentRadius * 2, currentRadius * 2, currentRadius * 3);
             camera.lookAt(currentRadius, currentRadius, currentRadius);
         }
 
@@ -382,8 +381,7 @@
         });
 
         // Scale camera position based on radius size
-        const cameraScale = currentRadius / 100; // Relative to original scale
-        camera.position.set(200 * cameraScale, 200 * cameraScale, 300 * cameraScale);
+        camera.position.set(currentRadius * 2, currentRadius * 2, currentRadius * 3);
         camera.lookAt(currentRadius, currentRadius, currentRadius);
 
         // Add some lighting for better visibility
