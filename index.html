@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orbital AMM Visualization</title>
+    <title>Orbital AMM Visualization - Superellipse</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body {
@@ -115,9 +115,15 @@
             <h3>Orbital AMM Controls</h3>
             
             <div class="slider-container">
-                <label>Sphere Radius (r) - Millions</label>
+                <label>Superellipse Radius (r) - Millions</label>
                 <input type="range" id="radiusSlider" min="1000000" max="20000000" value="10000000" step="1000000">
                 <div class="value-display">r = <span id="radiusValue">10,000,000</span></div>
+            </div>
+            
+            <div class="slider-container">
+                <label>Superellipse Parameter (n)</label>
+                <input type="range" id="nSlider" min="1" max="6" value="3.414" step="0.1">
+                <div class="value-display">n = <span id="nValue">3.4</span></div>
             </div>
             
             <div class="slider-container">
@@ -138,7 +144,7 @@
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-color" style="background: rgba(0, 255, 136, 0.3); border: 1px solid #00ff88;"></div>
-                    <span>Main Sphere (AMM Constant)</span>
+                    <span>Main Superellipse (AMM Constant)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: rgba(255, 100, 100, 0.6);"></div>
@@ -150,7 +156,7 @@
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #ffffff;"></div>
-                    <span>Sphere Center</span>
+                    <span>Superellipse Center</span>
                 </div>
             </div>
         </div>
@@ -158,9 +164,9 @@
         <div id="info">
             <h3>Mathematical Relationships</h3>
             <div>
-                <strong>AMM Constant:</strong><br>
-                ||r⃗ - x⃗||² = r²<br>
-                <em>Defines the sphere surface</em>
+                <strong>AMM Constant (Superellipse):</strong><br>
+                |x/r|^<span id="currentNValue">3.4</span> + |y/r|^<span id="currentNValue2">3.4</span> + |z/r|^<span id="currentNValue3">3.4</span> = 1<br>
+                <em>Defines the superellipse surface</em>
             </div>
             <div style="margin-top: 10px;">
                 <strong>Tick Boundaries:</strong><br>
@@ -184,6 +190,7 @@
         let animationSpeed = 1.0;
         let currentRadius = 10000000;
         let currentTickCount = 6;
+        let currentN = 3.414;
 
         // Now camera can use currentRadius
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, currentRadius * 0.001, currentRadius * 1000);
@@ -201,17 +208,61 @@
             tickBoundaries = [];
 
             const r = currentRadius;
-            const n = 3; // 3D visualization for 3 assets
+            const n = currentN;
+            const superellipseN = currentN; // Use the current n value from slider
 
-            // Create main sphere (AMM constant surface)
-            const sphereGeometry = new THREE.SphereGeometry(r, 32, 32);
-            const sphereMaterial = new THREE.MeshBasicMaterial({
+            // Create superellipse geometry
+            function createSuperellipseGeometry(radius, n, segments = 64) {
+                const geometry = new THREE.BufferGeometry();
+                const vertices = [];
+                const indices = [];
+                
+                // Generate vertices for superellipse surface
+                for (let phi = 0; phi <= Math.PI; phi += Math.PI / segments) {
+                    for (let theta = 0; theta <= 2 * Math.PI; theta += 2 * Math.PI / segments) {
+                        // Parametric equations for superellipse
+                        const x = radius * Math.pow(Math.abs(Math.sin(phi) * Math.cos(theta)), 2/n) * Math.sign(Math.sin(phi) * Math.cos(theta));
+                        const y = radius * Math.pow(Math.abs(Math.sin(phi) * Math.sin(theta)), 2/n) * Math.sign(Math.sin(phi) * Math.sin(theta));
+                        const z = radius * Math.pow(Math.abs(Math.cos(phi)), 2/n) * Math.sign(Math.cos(phi));
+                        
+                        vertices.push(x, y, z);
+                    }
+                }
+                
+                // Generate indices for wireframe
+                const phiSteps = segments + 1;
+                const thetaSteps = segments + 1;
+                
+                for (let i = 0; i < phiSteps - 1; i++) {
+                    for (let j = 0; j < thetaSteps - 1; j++) {
+                        const current = i * thetaSteps + j;
+                        const next = i * thetaSteps + (j + 1);
+                        const below = (i + 1) * thetaSteps + j;
+                        const belowNext = (i + 1) * thetaSteps + (j + 1);
+                        
+                        // Add wireframe edges
+                        indices.push(current, next);
+                        indices.push(current, below);
+                        indices.push(current, belowNext);
+                    }
+                }
+                
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals();
+                
+                return geometry;
+            }
+
+            // Create main superellipse (AMM constant surface)
+            const superellipseGeometry = createSuperellipseGeometry(r, superellipseN);
+            const superellipseMaterial = new THREE.MeshBasicMaterial({
                 color: 0x00ff88,
                 wireframe: true,
                 transparent: true,
                 opacity: 0.3
             });
-            sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere = new THREE.Mesh(superellipseGeometry, superellipseMaterial);
             sphere.position.set(r, r, r); // Center at (r, r, r)
             scene.add(sphere);
 
@@ -222,19 +273,22 @@
             sphereCenter.position.set(r, r, r);
             scene.add(sphereCenter);
 
-            // Calculate equal price point
-            const q = r * (1 - 1/Math.sqrt(n));
+            // Calculate equal price point for superellipse
+            // For superellipse, we need to find the point where all coordinates are equal
+            // This is more complex than for a sphere, so we'll approximate
+            const q = r * 0.5; // Approximate equal price point for superellipse
             const equalPriceGeometry = new THREE.SphereGeometry(r * 0.06, 8, 8); // 1.5% of sphere radius
             const equalPriceMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
             equalPricePoint = new THREE.Mesh(equalPriceGeometry, equalPriceMaterial);
             equalPricePoint.position.set(q, q, q);
             scene.add(equalPricePoint);
 
-            // Calculate k_min and k_max
-            const k_min = r * (Math.sqrt(n) - 1);
-            const k_max = r * (n - 1) / Math.sqrt(n);
+            // Calculate k_min and k_max for superellipse
+            // These need to be adjusted for the superellipse shape
+            const k_min = r * 0.3; // Adjusted for superellipse
+            const k_max = r * 1.2; // Adjusted for superellipse
 
-            // Create tick boundaries (planes intersecting the sphere)
+            // Create tick boundaries (planes intersecting the superellipse)
             for (let i = 0; i < currentTickCount; i++) {
                 const t = i / (currentTickCount - 1);
                 const k = k_min + t * (k_max - k_min);
@@ -268,7 +322,7 @@
                     console.log("Red plane k:", k);
                     console.log("Red plane center:", planeCenterCoord, planeCenterCoord, planeCenterCoord);
                     console.log("Distance apart:", Math.sqrt(3 * Math.pow(planeCenterCoord - q, 2)));
-    }
+                }
 
                 scene.add(planeMesh);
                 tickBoundaries.push(planeMesh);
@@ -280,9 +334,14 @@
 
         function updateInfoDisplay() {
             const r = currentRadius;
-            const n = 3;
-            const k_min = Math.round(r * (Math.sqrt(n) - 1));
-            const k_max = Math.round(r * (n - 1) / Math.sqrt(n));
+            const n = currentN;
+            const k_min = Math.round(r * 0.3);
+            const k_max = Math.round(r * 1.2);
+            
+            // Update n values in mathematical description
+            document.getElementById('currentNValue').textContent = n.toFixed(1);
+            document.getElementById('currentNValue2').textContent = n.toFixed(1);
+            document.getElementById('currentNValue3').textContent = n.toFixed(1);
             
             document.getElementById('currentState').innerHTML = 
                 `Center: (${r.toLocaleString()}, ${r.toLocaleString()}, ${r.toLocaleString()})<br>` +
@@ -334,6 +393,12 @@
         document.getElementById('tickSlider').addEventListener('input', function(e) {
             currentTickCount = parseInt(e.target.value);
             document.getElementById('tickValue').textContent = currentTickCount;
+            initVisualization();
+        });
+
+        document.getElementById('nSlider').addEventListener('input', function(e) {
+            currentN = parseFloat(e.target.value);
+            document.getElementById('nValue').textContent = currentN.toFixed(1);
             initVisualization();
         });
 
@@ -398,6 +463,7 @@
 
         initVisualization();
         document.getElementById('radiusValue').textContent = currentRadius.toLocaleString();
+        document.getElementById('nValue').textContent = currentN.toFixed(1);
         animate();
     </script>
 </body>
